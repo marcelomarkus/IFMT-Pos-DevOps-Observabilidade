@@ -1,0 +1,49 @@
+# Datasources do Grafana provisionados como codigo.
+# A correlacao trace <-> log usa o campo estruturado trace_id.
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      httpMethod: POST
+      timeInterval: 5s
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          matcherType: regex
+          matcherRegex: '"trace_id":\s*"([0-9a-f]{32})"'
+          url: "$${__value.raw}"
+          datasourceUid: tempo
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterByTraceID: true
+        spanStartTimeShift: -1h
+        spanEndTimeShift: 1h
+      tracesToMetrics:
+        datasourceUid: prometheus
+      serviceMap:
+        datasourceUid: prometheus
+      nodeGraph:
+        enabled: true

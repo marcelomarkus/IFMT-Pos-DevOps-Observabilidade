@@ -1,0 +1,45 @@
+# Tempo - backend de traces. Recebe OTLP do Collector e gera metricas
+# derivadas (span-metrics e service-graphs) publicadas no Prometheus.
+
+stream_over_http_enabled: true
+
+server:
+  http_listen_port: 3200
+  log_level: info
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/traces
+    wal:
+      path: /var/tempo/wal
+
+# Metricas derivadas dos traces: aparecem no Prometheus como
+# traces_spanmetrics_* e traces_service_graph_*.
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+  storage:
+    path: /var/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics]
+
+usage_report:
+  reporting_enabled: false

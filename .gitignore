@@ -1,0 +1,17 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+.terraformrc
+terraform.rc
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Evidencias locais (prints, exportacoes de metricas)
+evidencias/
+*.png

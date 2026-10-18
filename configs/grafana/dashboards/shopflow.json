@@ -1,0 +1,1103 @@
+{
+  "uid": "shopflow-observability",
+  "title": "ShopFlow - Observabilidade",
+  "description": "Painel unico com os tres pilares (metricas RED, negocio, infraestrutura do host, traces e logs correlacionados por trace_id).",
+  "tags": [
+    "shopflow",
+    "observabilidade",
+    "devops",
+    "otel"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Prometheus",
+      "url": "http://localhost:9090",
+      "type": "link",
+      "icon": "external link",
+      "targetBlank": true
+    },
+    {
+      "title": "Loki (Explorer)",
+      "url": "http://localhost:3000/explore?schemaVersion=1&panes=%7B%22a%22:%7B%22datasource%22:%22loki%22%7D%7D",
+      "type": "link",
+      "icon": "external link",
+      "targetBlank": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "1. Visao geral da aplicacao (metricas RED)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Disponibilidade (teste sintetico)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(shopflow_availability_ratio)",
+          "legendFormat": "disponibilidade",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "INDISPONIVEL",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "DISPONIVEL",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "sem dados"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Requisicoes por segundo",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(http_server_duration_milliseconds_count{service_name=\"shopflow-api\"}[1m]))",
+          "legendFormat": "req/s",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Taxa de erro (HTTP 5xx)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum(rate(http_server_duration_milliseconds_count{service_name=\"shopflow-api\",http_status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_server_duration_milliseconds_count{service_name=\"shopflow-api\"}[5m])), 0.001)",
+          "legendFormat": "erro %",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Latencia p95 (ms)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_duration_milliseconds_bucket{service_name=\"shopflow-api\"}[5m])))",
+          "legendFormat": "p95",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Trafego por rota (req/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (http_target) (rate(http_server_duration_milliseconds_count{service_name=\"shopflow-api\"}[1m]))",
+          "legendFormat": "{{http_target}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Latencia da API (p50 / p95 / p99, ms)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_duration_milliseconds_bucket{service_name=\"shopflow-api\"}[5m])))",
+          "legendFormat": "p50",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_duration_milliseconds_bucket{service_name=\"shopflow-api\"}[5m])))",
+          "legendFormat": "p95",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_duration_milliseconds_bucket{service_name=\"shopflow-api\"}[5m])))",
+          "legendFormat": "p99",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "2. Metricas de negocio (ShopFlow)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Pedidos concluidos (ultimos 5 min)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 15
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopflow_orders_completed_total[5m]))",
+          "legendFormat": "pedidos",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "noValue": "0"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Falhas (pagamento + autenticacao, 5 min)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 15
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopflow_orders_failed_total[5m])) + sum(increase(shopflow_auth_failures_total[5m]))",
+          "legendFormat": "falhas",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Pedidos concluidos x falhos (por 5 min)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopflow_orders_completed_total[5m]))",
+          "legendFormat": "concluidos",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "expr": "sum(increase(shopflow_orders_failed_total[5m]))",
+          "legendFormat": "falhos",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "concluidos"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "falhos"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Latencia do gateway de pagamento (p95, ms) e fila",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopflow_payment_duration_milliseconds_bucket[5m])))",
+          "legendFormat": "p95 pagamento",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "expr": "max(shopflow_payment_queue_size_ratio)",
+          "legendFormat": "tamanho da fila",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Operacoes rastreadas (span metrics do Tempo, span/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total[1m]))",
+          "legendFormat": "{{span_name}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "3. Infraestrutura do host (coletada pelo OpenTelemetry hostmetrics)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "CPU do host (%)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 29
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (1 - sum(rate(system_cpu_time_seconds_total{state=\"idle\"}[2m])) / sum(rate(system_cpu_time_seconds_total[2m])))",
+          "legendFormat": "uso de CPU",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Memoria do host",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 29
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(system_memory_usage_bytes{state=\"used\"})",
+          "legendFormat": "usada",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "expr": "max(system_memory_usage_bytes{state=\"cached\"})",
+          "legendFormat": "cache",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 17,
+      "type": "gauge",
+      "title": "Uso do disco /",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 29
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * max(system_filesystem_usage_bytes{state=\"used\",mountpoint=\"/\"}) / sum(system_filesystem_usage_bytes{mountpoint=\"/\"})",
+          "legendFormat": "uso",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "minVizHeight": 75,
+        "minVizWidth": 75
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Rede do host (bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 29
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (direction) (rate(system_network_io_bytes_total[1m]))",
+          "legendFormat": "{{direction}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 19,
+      "type": "row",
+      "title": "4. Traces e logs correlacionados",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "panels": []
+    },
+    {
+      "id": 20,
+      "type": "table",
+      "title": "Rastreamentos recentes da ShopFlow API (Tempo)",
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"shopflow-api\" && duration > 50ms }",
+          "limit": 20
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "spanID"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "parentSpanID"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "spanID": true,
+              "parentSpanID": true
+            },
+            "renameByName": {
+              "traceID": "Trace",
+              "name": "Operacao",
+              "duration": "Duracao",
+              "startTime": "Inicio",
+              "service.name": "Servico"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "logs",
+      "title": "Logs da ShopFlow API (Loki) - correlacionaveis pelo trace_id",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 38
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "queryType": "range",
+          "expr": "{service_name=\"shopflow-api\"} | json",
+          "maxLines": 200
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Carrega automaticamente os dashboards JSON presentes em /var/lib/grafana/dashboards.
+
+apiVersion: 1
+
+providers:
+  - name: shopflow
+    orgId: 1
+    folder: ShopFlow
+    folderUid: shopflow
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

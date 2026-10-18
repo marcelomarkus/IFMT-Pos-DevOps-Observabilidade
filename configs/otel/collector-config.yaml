@@ -1,0 +1,75 @@
+# OpenTelemetry Collector - recebe toda a telemetria e distribui para cada backend.
+# Metricas  -> Prometheus (remote write)
+# Logs      -> Loki
+# Traces    -> Tempo
+# Tambem coleta metricas do host (CPU, memoria, disco) via hostmetrics.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  host_metrics:
+    root_path: /hostfs
+    collection_interval: 15s
+    scrapers:
+      cpu:
+      memory:
+      disk:
+      filesystem:
+      load:
+      network:
+      paging:
+
+processors:
+  memory_limiter:
+    check_interval: 2s
+    limit_percentage: 75
+    spike_limit_percentage: 20
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+exporters:
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    resource_to_telemetry_conversion:
+      enabled: true
+  # Loki 3.x recebe logs via OTLP nativo (/otlp/v1/logs), sem exporter dedicado.
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+  otlp_grpc/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: basic
+
+service:
+  telemetry:
+    metrics:
+      level: detailed
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    metrics:
+      receivers: [otlp, host_metrics]
+      processors: [memory_limiter, batch]
+      exporters: [prometheusremotewrite]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp_http/loki]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp_grpc/tempo, debug]

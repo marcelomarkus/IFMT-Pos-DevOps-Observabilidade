@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: shopflow-lab
+
+scrape_configs:
+  # Auto-monitoramento do Prometheus.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Metricas de saude do proprio OpenTelemetry Collector.
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8888"]
+
+# As metricas da aplicacao e do host chegam por remote write,
+# enviadas pelo exporter prometheusremotewrite do Collector.
