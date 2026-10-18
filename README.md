@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="./ifmt.png" alt="IFMT" width="270" />
 </p>
 
