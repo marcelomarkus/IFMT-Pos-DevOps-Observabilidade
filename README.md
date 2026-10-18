@@ -1,9 +1,10 @@
-# ShopFlow - Laboratório de Observabilidade (Terraform + Podman)
-
 <p align="center">
   <img src="./ifmt.png" alt="IFMT" width="270" />
 </p>
 
+# IFTM - Pós em Engenharia DevOPS
+
+# ShopFlow - Laboratório de Observabilidade (Terraform + Podman)
 
 Implementação prática do projeto basico de observabilidade da plataforma **ShopFlow**.
 Toda a infraestrutura e criada como código com **Terraform** e executada em containers
