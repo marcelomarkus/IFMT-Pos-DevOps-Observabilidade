@@ -234,6 +234,17 @@ nao e pintado), por isso o print da consulta PromQL (`16-prometheus-consulta.png
 do Grafana apontando para o datasource Prometheus. No navegador normal o `/graph` do Prometheus
 funciona sem problemas.
 
+
+## Evidências destacadas
+
+| Evidência | Descrição |
+|---|---|
+| ![Dashboard completo](evidencias/prints/01-dashboard-completo.png) | Dashboard provisionado com visão RED e indicadores de negócio |
+| ![Indisponibilidade simulada](evidencias/prints/17-falha-disponibilidade.png) | Falha injetada: disponibilidade passa para INDISPONÍVEL e taxa de erro sobe |
+| ![Recuperação do serviço](evidencias/prints/20-recuperacao.png) | Após restabelecimento, indicadores retornam ao estado normal |
+
+Veja todas as evidências completas em [`evidencias/prints/`](evidencias/prints/).
+
 ## 8. Operacao do dia a dia
 
 ```bash
