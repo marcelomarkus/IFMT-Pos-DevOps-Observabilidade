@@ -1,7 +1,7 @@
 # ShopFlow - Laboratório de Observabilidade (Terraform + Podman)
 
 <p align="center">
-  <img src="ifmt.png" alt="IFMT" width="270" />
+  <img src="./ifmt.png" alt="IFMT" width="270" />
 </p>
 
 
